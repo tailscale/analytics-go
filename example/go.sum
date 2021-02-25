@@ -6,8 +6,8 @@ github.com/rudderlabs/analytics-go v0.0.0-20200415153858-9ae782ef91f8 h1:Dsa29Uj
 github.com/rudderlabs/analytics-go v0.0.0-20200415153858-9ae782ef91f8/go.mod h1:LeE27Re9DkS7oPShbg3DuPbVfqxjVv3H1ZHdHSXcHKw=
 github.com/rudderlabs/analytics-go v0.0.0-20200415154608-b34ea0397265 h1:nX4Asg03bPZ1osSz39eF/7bAHBbO/ygXuyozO8HMwIE=
 github.com/rudderlabs/analytics-go v0.0.0-20200415154608-b34ea0397265/go.mod h1:LeE27Re9DkS7oPShbg3DuPbVfqxjVv3H1ZHdHSXcHKw=
-github.com/rudderlabs/analytics-go v3.1.0+incompatible h1:raJgBJMxxnCe9CWHL1zJq4rccap4yG7lvk4Fs6B7v+o=
-github.com/rudderlabs/analytics-go v3.1.0+incompatible/go.mod h1:LF8/ty9kUX4PTY3l5c97K3nZZaX5Hwsvt+NBaRL/f30=
+github.com/rudderlabs/analytics-go v3.3.0+incompatible h1:raJgBJMxxnCe9CWHL1zJq4rccap4yG7lvk4Fs6B7v+o=
+github.com/rudderlabs/analytics-go v3.3.0+incompatible/go.mod h1:LF8/ty9kUX4PTY3l5c97K3nZZaX5Hwsvt+NBaRL/f30=
 github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c/go.mod h1:kJ9mm9YmoWSkk+oQ+5Cj8DEoRCX2JT6As4kEtIIOp1M=
 github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 h1:ZuhckGJ10ulaKkdvJtiAqsLTiPrLaXSdnVgXJKJkTxE=
 github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3/go.mod h1:9/Rh6yILuLysoQnZ2oNooD2g7aBnvM7r/fNVxRNWfBc=
