@@ -2,37 +2,34 @@ package analytics
 
 import "time"
 
-var _ Message = (*Alias)(nil)
+var _ Message = (*Identify)(nil)
 
-// This type represents object sent in a alias call as described in
+// This type represents object sent in an identify call as described in
 
-type Alias struct {
+type Identify struct {
 	// This field is exported for serialization purposes and shouldn't be set by
 	// the application, its value is always overwritten by the library.
 	Type string `json:"type,omitempty"`
 
 	MessageId    string       `json:"messageId,omitempty"`
-	PreviousId   string       `json:"previousId"`
-	UserId       string       `json:"userId"`
+	AnonymousId  string       `json:"anonymousId,omitempty"`
+	UserId       string       `json:"userId,omitempty"`
 	Timestamp    time.Time    `json:"timestamp,omitempty"`
 	Context      *Context     `json:"context,omitempty"`
+	Traits       Traits       `json:"traits,omitempty"`
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Alias) Validate() error {
-	if len(msg.UserId) == 0 {
+func (msg Identify) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Identify) Validate() error {
+	if len(msg.UserId) == 0 && len(msg.AnonymousId) == 0 {
 		return FieldError{
-			Type:  "analytics.Alias",
+			Type:  "analytics.Identify",
 			Name:  "UserId",
 			Value: msg.UserId,
-		}
-	}
-
-	if len(msg.PreviousId) == 0 {
-		return FieldError{
-			Type:  "analytics.Alias",
-			Name:  "PreviousId",
-			Value: msg.PreviousId,
 		}
 	}
 

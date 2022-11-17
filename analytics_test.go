@@ -72,9 +72,6 @@ var _ Message = (*testErrorMessage)(nil)
 // tests.
 type testErrorMessage struct{}
 
-func (m testErrorMessage) internal() {
-}
-
 func (m testErrorMessage) Validate() error { return testError }
 
 var (
@@ -335,9 +332,6 @@ func TestEnqueue(t *testing.T) {
 var _ Message = (*customMessage)(nil)
 
 type customMessage struct {
-}
-
-func (c *customMessage) internal() {
 }
 
 func (c *customMessage) Validate() error {

@@ -2,37 +2,35 @@ package analytics
 
 import "time"
 
-var _ Message = (*Alias)(nil)
+var _ Message = (*Screen)(nil)
 
-// This type represents object sent in a alias call as described in
+// This type represents object sent in a screen call as described in
 
-type Alias struct {
+type Screen struct {
 	// This field is exported for serialization purposes and shouldn't be set by
 	// the application, its value is always overwritten by the library.
 	Type string `json:"type,omitempty"`
 
 	MessageId    string       `json:"messageId,omitempty"`
-	PreviousId   string       `json:"previousId"`
-	UserId       string       `json:"userId"`
+	AnonymousId  string       `json:"anonymousId,omitempty"`
+	UserId       string       `json:"userId,omitempty"`
+	Name         string       `json:"name,omitempty"`
 	Timestamp    time.Time    `json:"timestamp,omitempty"`
 	Context      *Context     `json:"context,omitempty"`
+	Properties   Properties   `json:"properties,omitempty"`
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
-func (msg Alias) Validate() error {
-	if len(msg.UserId) == 0 {
+func (msg Screen) internal() {
+	panic(unimplementedError)
+}
+
+func (msg Screen) Validate() error {
+	if len(msg.UserId) == 0 && len(msg.AnonymousId) == 0 {
 		return FieldError{
-			Type:  "analytics.Alias",
+			Type:  "analytics.Screen",
 			Name:  "UserId",
 			Value: msg.UserId,
-		}
-	}
-
-	if len(msg.PreviousId) == 0 {
-		return FieldError{
-			Type:  "analytics.Alias",
-			Name:  "PreviousId",
-			Value: msg.PreviousId,
 		}
 	}
 

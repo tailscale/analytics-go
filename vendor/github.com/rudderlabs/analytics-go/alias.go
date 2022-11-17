@@ -19,6 +19,10 @@ type Alias struct {
 	Integrations Integrations `json:"integrations,omitempty"`
 }
 
+func (msg Alias) internal() {
+	panic(unimplementedError)
+}
+
 func (msg Alias) Validate() error {
 	if len(msg.UserId) == 0 {
 		return FieldError{
