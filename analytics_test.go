@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -71,11 +72,11 @@ var _ Message = (*testErrorMessage)(nil)
 // tests.
 type testErrorMessage struct{}
 
-func (m testErrorMessage) Validate() error { return testError }
+func (m testErrorMessage) Validate() error { return errorTest }
 
 var (
 	// A control error returned by mock functions to emulate a failure.
-	testError = errors.New("test error")
+	errorTest = errors.New("test error")
 
 	// HTTP transport that always succeeds.
 	testTransportOK = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
@@ -117,15 +118,17 @@ var (
 			Proto:      r.Proto,
 			ProtoMajor: r.ProtoMajor,
 			ProtoMinor: r.ProtoMinor,
-			Body:       io.NopCloser(readFunc(func(b []byte) (int, error) { return 0, testError })),
+			Body:       io.NopCloser(readFunc(func(b []byte) (int, error) { return 0, errorTest })),
 			Request:    r,
 		}, nil
 	})
 
 	// HTTP transport that always return an error.
 	testTransportError = roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-		return nil, testError
+		return nil, errorTest
 	})
+
+	WRITE_KEY = "WRITE_KEY"
 )
 
 func fixture(name string) string {
@@ -172,12 +175,27 @@ func mockServer() (chan []byte, *httptest.Server) {
 	return done, server
 }
 
+func AreEqualJSON(s1, s2 string) (bool, error) {
+	var o1 interface{}
+	var o2 interface{}
+
+	var err error
+	err = json.Unmarshal([]byte(s1), &o1)
+	if err != nil {
+		return false, fmt.Errorf("Error mashalling string 1 :: %s", err.Error())
+	}
+	err = json.Unmarshal([]byte(s2), &o2)
+	if err != nil {
+		return false, fmt.Errorf("Error mashalling string 2 :: %s", err.Error())
+	}
+
+	return reflect.DeepEqual(o1, o2), nil
+}
+
 func ExampleTrack() {
 	body, server := mockServer()
 	defer server.Close()
-
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
-		Endpoint:  server.URL,
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		BatchSize: 1,
 		now:       mockTime,
 		uid:       mockId,
@@ -199,6 +217,14 @@ func ExampleTrack() {
 	// {
 	//   "batch": [
 	//     {
+	//       "anonymousId": "123456",
+	//       "channel": "server",
+	//       "context": {
+	//         "library": {
+	//           "name": "analytics-go",
+	//           "version": "3.4.0"
+	//         }
+	//       },
 	//       "event": "Download",
 	//       "messageId": "I'm unique",
 	//       "properties": {
@@ -214,10 +240,9 @@ func ExampleTrack() {
 	//   "context": {
 	//     "library": {
 	//       "name": "analytics-go",
-	//       "version": "3.3.0"
+	//       "version": "3.4.0"
 	//     }
 	//   },
-	//   "messageId": "I'm unique",
 	//   "sentAt": "2009-11-10T23:00:00Z"
 	// }
 }
@@ -306,7 +331,7 @@ func TestEnqueue(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -322,7 +347,8 @@ func TestEnqueue(t *testing.T) {
 			return
 		}
 
-		if res := string(<-body); res != test.ref {
+		res := string(<-body)
+		if areEqual, _ := AreEqualJSON(res, test.ref); areEqual == false {
 			t.Errorf("%s: invalid response:\n- expected %s\n- received: %s", name, test.ref, res)
 		}
 	}
@@ -338,7 +364,7 @@ func (c *customMessage) Validate() error {
 }
 
 func TestEnqueuingCustomTypeFails(t *testing.T) {
-	client := New("0123456789", "https://abc.com")
+	client := New(WRITE_KEY, "")
 	err := client.Enqueue(&customMessage{})
 
 	if err.Error() != "messages with custom types cannot be enqueued: *analytics.customMessage" {
@@ -355,7 +381,7 @@ func TestTrackWithInterval(t *testing.T) {
 
 	t0 := time.Now()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint: server.URL,
 		Interval: interval,
 		Verbose:  true,
@@ -376,7 +402,8 @@ func TestTrackWithInterval(t *testing.T) {
 	})
 
 	// Will flush in 100 milliseconds
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 
@@ -391,7 +418,7 @@ func TestTrackWithTimestamp(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -412,7 +439,8 @@ func TestTrackWithTimestamp(t *testing.T) {
 		Timestamp: time.Date(2015, time.July, 10, 23, 0, 0, 0, time.UTC),
 	})
 
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 }
@@ -423,7 +451,7 @@ func TestTrackWithMessageId(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -444,7 +472,8 @@ func TestTrackWithMessageId(t *testing.T) {
 		MessageId: "abc",
 	})
 
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 }
@@ -455,7 +484,7 @@ func TestTrackWithContext(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -480,7 +509,8 @@ func TestTrackWithContext(t *testing.T) {
 		},
 	})
 
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 }
@@ -491,7 +521,7 @@ func TestTrackMany(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -512,7 +542,8 @@ func TestTrackMany(t *testing.T) {
 		})
 	}
 
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 }
@@ -523,7 +554,7 @@ func TestTrackWithIntegrations(t *testing.T) {
 	body, server := mockServer()
 	defer server.Close()
 
-	client, _ := NewWithConfig("h97jamjwbh", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, server.URL, Config{
 		Endpoint:  server.URL,
 		Verbose:   true,
 		Logger:    t,
@@ -548,13 +579,14 @@ func TestTrackWithIntegrations(t *testing.T) {
 		},
 	})
 
-	if res := string(<-body); ref != res {
+	res := string(<-body)
+	if areEqual, _ := AreEqualJSON(res, ref); areEqual == false {
 		t.Errorf("invalid response:\n- expected %s\n- received: %s", ref, res)
 	}
 }
 
 func TestClientCloseTwice(t *testing.T) {
-	client := New("0123456789", "https://abc.com")
+	client := New(WRITE_KEY, "")
 
 	if err := client.Close(); err != nil {
 		t.Error("closing a client should not a return an error")
@@ -570,7 +602,7 @@ func TestClientCloseTwice(t *testing.T) {
 }
 
 func TestClientConfigError(t *testing.T) {
-	client, err := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, err := NewWithConfig(WRITE_KEY, "", Config{
 		Interval: -1 * time.Second,
 	})
 
@@ -589,10 +621,10 @@ func TestClientConfigError(t *testing.T) {
 }
 
 func TestClientEnqueueError(t *testing.T) {
-	client := New("0123456789", "https://abc.com")
+	client := New(WRITE_KEY, "")
 	defer client.Close()
 
-	if err := client.Enqueue(testErrorMessage{}); err != testError {
+	if err := client.Enqueue(testErrorMessage{}); err != errorTest {
 		t.Error("invlaid error returned when queueing an invalid message:", err)
 	}
 }
@@ -601,7 +633,7 @@ func TestClientCallback(t *testing.T) {
 	reschan := make(chan bool, 1)
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			func(m Message) { reschan <- true },
@@ -626,7 +658,7 @@ func TestClientCallback(t *testing.T) {
 func TestClientMarshalMessageError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
@@ -655,7 +687,7 @@ func TestClientMarshalMessageError(t *testing.T) {
 func TestClientMarshalContextError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
@@ -684,7 +716,7 @@ func TestClientMarshalContextError(t *testing.T) {
 func TestClientNewRequestError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "://localhost:80", Config{
 		Endpoint: "://localhost:80", // Malformed endpoint URL.
 		Logger:   testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
@@ -705,7 +737,7 @@ func TestClientNewRequestError(t *testing.T) {
 func TestClientRoundTripperError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
@@ -723,7 +755,7 @@ func TestClientRoundTripperError(t *testing.T) {
 	} else if e, ok := err.(*url.Error); !ok {
 		t.Errorf("invalid error returned by round tripper: %T: %s", err, err)
 
-	} else if e.Err != testError {
+	} else if e.Err != errorTest {
 		t.Errorf("invalid error returned by round tripper: %T: %s", e.Err, e.Err)
 	}
 }
@@ -731,14 +763,14 @@ func TestClientRoundTripperError(t *testing.T) {
 func TestClientRetryError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
 			func(m Message, e error) { errchan <- e },
 		},
 		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-			return nil, testError
+			return nil, errorTest
 		}),
 		BatchSize:  1,
 		RetryAfter: func(i int) time.Duration { return time.Millisecond },
@@ -756,7 +788,7 @@ func TestClientRetryError(t *testing.T) {
 	} else if e, ok := err.(*url.Error); !ok {
 		t.Errorf("invalid error returned by round tripper: %T: %s", err, err)
 
-	} else if e.Err != testError {
+	} else if e.Err != errorTest {
 		t.Errorf("invalid error returned by round tripper: %T: %s", e.Err, e.Err)
 	}
 
@@ -766,7 +798,7 @@ func TestClientRetryError(t *testing.T) {
 func TestClientResponse400(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
@@ -787,7 +819,7 @@ func TestClientResponse400(t *testing.T) {
 func TestClientResponseBodyError(t *testing.T) {
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			nil,
@@ -803,7 +835,7 @@ func TestClientResponseBodyError(t *testing.T) {
 	if err := <-errchan; err == nil {
 		t.Error("failure callback not triggered for a 400 response")
 
-	} else if err != testError {
+	} else if err != errorTest {
 		t.Errorf("invalid error returned by erroring response body: %T: %s", err, err)
 	}
 }
@@ -812,7 +844,7 @@ func TestClientMaxConcurrentRequests(t *testing.T) {
 	reschan := make(chan bool, 1)
 	errchan := make(chan error, 1)
 
-	client, _ := NewWithConfig("0123456789", "https://abc.com", Config{
+	client, _ := NewWithConfig(WRITE_KEY, "", Config{
 		Logger: testLogger{t.Logf, t.Logf},
 		Callback: testCallback{
 			func(m Message) { reschan <- true },
