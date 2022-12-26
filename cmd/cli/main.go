@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rudderlabs/analytics-go/v3"
+	"github.com/rudderlabs/analytics-go/v4"
 	"github.com/segmentio/conf"
 )
 
@@ -27,9 +27,10 @@ func main() {
 
 	callback := callback(make(chan error, 1))
 
-	client, err := analytics.NewWithConfig(config.WriteKey, dataPlaneUrl, analytics.Config{
-		BatchSize: 1,
-		Callback:  callback,
+	client, err := analytics.NewWithConfig(config.WriteKey, analytics.Config{
+		DataPlaneUrl: dataPlaneUrl,
+		BatchSize:    1,
+		Callback:     callback,
 	})
 	if err != nil {
 		fmt.Println("could not initialize analytics client", err)
