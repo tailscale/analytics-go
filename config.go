@@ -92,8 +92,11 @@ type Config struct {
 	// Maximum bytes in a batch
 	MaxBatchBytes int
 
-	// Disable/enable gzip support. 0 = Enable, 1 = Disable
+	// Deprecated: Gzip is deprecated, will be removed in next releases. Use DisableGzip.
 	Gzip int
+
+	// Disable/enable gzip support.
+	DisableGzip bool
 }
 
 // This constant sets the default endpoint to which client instances send
@@ -200,6 +203,10 @@ func makeConfig(c Config) Config {
 
 	if c.MaxBatchBytes == 0 {
 		c.MaxBatchBytes = defMaxBatchBytes
+	}
+
+	if c.Gzip != 0 {
+		c.DisableGzip = true
 	}
 
 	// We always overwrite the 'library' field of the default context set on the

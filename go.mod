@@ -17,7 +17,6 @@ require (
 	github.com/segmentio/objconv v1.0.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/mold.v2 v2.2.0 // indirect
 	gopkg.in/validator.v2 v2.0.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
