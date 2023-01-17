@@ -231,7 +231,7 @@ func ExampleTrack() {
 	//       "context": {
 	//         "library": {
 	//           "name": "analytics-go",
-	//           "version": "4.0.0"
+	//           "version": "4.1.0"
 	//         }
 	//       },
 	//       "event": "Download",
@@ -493,7 +493,7 @@ func TestDisableGzipSupport(t *testing.T) {
 		BatchSize:    1,
 		now:          mockTime,
 		uid:          mockId,
-		Gzip:         1,
+		DisableGzip:  true,
 	})
 	defer client.Close()
 
@@ -763,8 +763,8 @@ func TestClientNewRequestError(t *testing.T) {
 			nil,
 			func(m Message, e error) { errchan <- e },
 		},
-		Transport: testTransportOK,
-		Gzip:      1,
+		Transport:   testTransportOK,
+		DisableGzip: true,
 	})
 
 	client.Enqueue(Track{UserId: "A", Event: "B"})

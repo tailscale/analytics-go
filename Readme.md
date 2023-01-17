@@ -90,7 +90,7 @@ func main() {
 			Interval:     30 * time.Second,
 			BatchSize:    100,
 			Verbose:      true,
-			Gzip:         0,  // Enables Gzip compression - set to 1 to disable Gzip.
+			DisableGzip:  false  // Enables Gzip compression - set true to disable Gzip.
 		})
 
     // Enqueues a track event that will be sent asynchronously.
@@ -108,7 +108,7 @@ func main() {
 
 ## Gzip support
 
-The Go SDK supports Gzip compression from version 4.0.0 and it is enabled (set to `0`) by default. However, you can disable this feature by setting the `Gzip` parameter to `1` while initializing the SDK, as shown:
+The Go SDK supports Gzip compression from version 4.1.0 and it is enabled by default. However, you can disable this feature by setting the `DisableGzip` parameter to `true` while initializing the SDK, as shown:
 
 ```go
 client, _ := analytics.NewWithConfig(WRITE_KEY,
@@ -117,7 +117,7 @@ client, _ := analytics.NewWithConfig(WRITE_KEY,
 			Interval:     30 * time.Second,
 			BatchSize:    100,
 			Verbose:      true,
-			Gzip:         0  // Enables Gzip compression - set to 1 to disable Gzip.
+			DisableGzip:  false  // Enables Gzip compression - set true to disable Gzip.
 		})
 ```
 

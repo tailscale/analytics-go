@@ -34,6 +34,7 @@ func main() {
 			Interval:     30 * time.Second,
 			BatchSize:    100,
 			Verbose:      true,
+			DisableGzip:  false,
 		})
 	defer client.Close()
 
