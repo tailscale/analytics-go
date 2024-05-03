@@ -1,8 +1,6 @@
-ORIGINAL LICENSE
-------------------------
-The MIT License (MIT)
+MIT License (MIT)
 
-Copyright (c) 2016 Segment, Inc.
+Copyright (c) 2016 Segment, Inc. friends@segment.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +19,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-------------------------
 
-UPDATE NOTICE
-------------------------
-THE LICENSE STATED BELOW IS EFFECTIVE ON AND AFTER SEPTEMBER 25TH, 2019
-------------------------
-
-The MIT License (MIT)
+MIT License (MIT)
 
 Copyright (c) 2019 RudderStack.
 
@@ -49,4 +41,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-------------------------
