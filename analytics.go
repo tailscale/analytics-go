@@ -375,6 +375,15 @@ func (c *client) getMarshalled(msgs []message) ([]byte, error) {
 func (c *client) send(msgs []message, retryAttempt int) {
 	const attempts = 10
 
+	ts := c.now()
+	for i := range msgs {
+		err := msgs[i].setSentAt(ts)
+		if err != nil {
+			c.errorf("%s - %v", err, msgs[i].msg)
+			c.notifyFailure([]message{msgs[i]}, err)
+		}
+	}
+
 	nodePayload := c.getNodePayload(msgs)
 	for k, b := range nodePayload {
 		for i := 0; i != attempts; i++ {

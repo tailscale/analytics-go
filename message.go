@@ -2,6 +2,7 @@ package analytics
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -81,6 +82,36 @@ func makeMessage(m Message, maxBytes int) (msg message, err error) {
 
 func (m message) MarshalJSON() ([]byte, error) {
 	return m.json, nil
+}
+
+// setSentAt remarshalls the message with a new sentAt timestamp
+func (m *message) setSentAt(ts time.Time) (err error) {
+	switch msg := m.msg.(type) {
+	case Alias:
+		msg.SentAt = ts
+		m.msg = msg
+	case Group:
+		msg.SentAt = ts
+		m.msg = msg
+	case Identify:
+		msg.SentAt = ts
+		m.msg = msg
+	case Page:
+		msg.SentAt = ts
+		m.msg = msg
+	case Screen:
+		msg.SentAt = ts
+		m.msg = msg
+	case Track:
+		msg.SentAt = ts
+		m.msg = msg
+	default:
+		err = fmt.Errorf("messages with custom types cannot be enqueued: %T", msg)
+		return
+	}
+
+	m.json, err = json.Marshal(m.msg)
+	return
 }
 
 func (m message) size() int {
